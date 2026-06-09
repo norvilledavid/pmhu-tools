@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PMHU — Daily Ritual</title>
+<style>
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --surface-2: #F0EEE9;
+    --border: rgba(0,0,0,0.09);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1A1917;
+    --text-muted: #6B6860;
+    --text-faint: #A09D96;
+    --accent: #1D5FA8;
+    --accent-bg: #EBF2FC;
+    --accent-text: #0C3D6E;
+    --green: #2E7D52;
+    --green-bg: #E8F5EE;
+    --amber: #8A5C00;
+    --amber-bg: #FDF3DC;
+    --red: #B83232;
+    --red-bg: #FCEAEA;
+    --gray: #6B6860;
+    --gray-bg: #F0EEE9;
+    --purple: #5A3FA8;
+    --purple-bg: #EEEAFE;
+    --teal: #1A7A62;
+    --teal-bg: #E3F5EF;
+    --coral: #B84020;
+    --coral-bg: #FAECEA;
+    --pink: #A03060;
+    --pink-bg: #FAE8F0;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* SETUP SCREEN */
+  #setup-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: var(--shadow);
+  }
+
+  .setup-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .setup-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--text);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .setup-logo-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .setup-card h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    margin-bottom: 0.4rem;
+  }
+
+  .setup-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+  }
+
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .api-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 1rem;
+  }
+
+  .api-input:focus { border-color: var(--accent); }
+
+  .api-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .api-hint a { color: var(--accent); text-decoration: none; }
+  .api-hint a:hover { text-decoration: underline; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 11px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* MAIN APP */
+  #app-screen { display: none; }
+
+  .app-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2rem;
+    padding: 0 0.25rem;
+  }
+
+  .logo-mark {
+    width: 26px;
+    height: 26px;
+    background: var(--text);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .logo-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    padding: 0 0.5rem;
+    margin-bottom: 0.4rem;
+    margin-top: 1.25rem;
+  }
+
+  .nav-label:first-of-type { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.12s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+
+  .nav-item.active {
+    background: var(--accent-bg);
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+
+  .nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .dot-green { background: var(--green); }
+  .dot-amber { background: #D4890A; }
+  .dot-red { background: var(--red); }
+  .dot-gray { background: var(--text-faint); }
+
+  .phase-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .phase-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.12s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .phase-btn:hover { background: var(--surface-2); color: var(--text); }
+  .phase-btn.active { background: var(--surface-2); color: var(--text); font-weight: 500; }
+
+  .phase-num-sm {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-ghost {
+    width: 100%;
+    padding: 7px 10px;
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+  }
+
+  .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+
+  /* MAIN CONTENT */
+  .main-content {
+    padding: 2.5rem 3rem;
+    max-width: 780px;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .page-date {
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  .phase-block {
+    display: none;
+  }
+
+  .phase-block.visible {
+    display: block;
+  }
+
+  /* PHASE HEADERS */
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .phase-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .phase-time-tag {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-left: auto;
+  }
+
+  /* GROUND PHASE */
+  .ground-questions { display: flex; flex-direction: column; gap: 10px; }
+
+  .ground-q {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+  }
+
+  .ground-q-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+
+  .ground-q-prompt {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .ground-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: transparent;
+    resize: none;
+    min-height: 40px;
+  }
+
+  .ground-input::placeholder { color: var(--text-faint); }
+
+  /* SCAN PHASE */
+  .domain-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .domain-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.12s;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+
+  .domain-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  .domain-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+  .dc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+
+  .dc-icon { font-size: 18px; }
+
+  .dc-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+
+  .dc-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+  /* DOMAIN DETAIL */
+  .domain-detail {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .dd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dd-title { font-size: 14px; font-weight: 600; color: var(--text); }
+
+  .dd-close {
+    font-size: 12px;
+    color: var(--text-muted);
+    border: 1px solid var(--border-strong);
+    background: none;
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+
+  .dd-close:hover { background: var(--surface-2); }
+
+  .dd-questions { padding: 1rem 1.25rem; }
+
+  .dd-q {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dd-q:last-child { border-bottom: none; }
+
+  .dd-q-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .dd-q-hint { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  .dd-actions {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-ask {
+    flex: 1;
+    padding: 9px 14px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.12s;
+  }
+
+  .btn-ask:hover { opacity: 0.8; }
+  .btn-ask:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* COMMIT PHASE */
+  .one-thing-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+  }
+
+  .one-thing-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  .one-thing-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    font-family: inherit;
+    color: var(--text);
+    background: transparent;
+  }
+
+  .one-thing-input::placeholder { color: var(--text-faint); font-weight: 400; }
+
+  .commit-rule {
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .commit-rule strong { color: var(--text); font-weight: 600; }
+
+  /* LOG */
+  .log-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .log-date { font-size: 11px; color: var(--text-faint); margin-bottom: 4px; font-weight: 500; }
+  .log-thing { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .log-notes { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  .empty-log {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13px;
+  }
+
+  /* INBOX PHASE */
+  .inbox-check {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .inbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .inbox-row:last-child { border-bottom: none; }
+  .inbox-row:hover { background: var(--surface-2); }
+  .inbox-row.checked { opacity: 0.5; }
+
+  .inbox-check-box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+  }
+
+  .inbox-row.checked .inbox-check-box {
+    background: var(--text);
+    border-color: var(--text);
+  }
+
+  .inbox-check-box svg { display: none; }
+  .inbox-row.checked .inbox-check-box svg { display: block; }
+
+  .inbox-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .inbox-q { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* AI RESPONSE PANEL */
+  .ai-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 1rem;
+    box-shadow: var(--shadow);
+    display: none;
+  }
+
+  .ai-panel.visible { display: block; }
+
+  .ai-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .ai-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 4px;
+  }
+
+  .ai-context-label { font-size: 12px; color: var(--text-muted); }
+
+  .ai-panel-body {
+    padding: 1.25rem;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 80px;
+    white-space: pre-wrap;
+  }
+
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  .btn-save {
+    padding: 9px 16px;
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .btn-save:hover { background: var(--surface-2); color: var(--text); }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .section-hed {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: 0.75rem;
+  }
+
+  .next-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.12s;
+    margin-top: 1.5rem;
+  }
+
+  .next-btn:hover { opacity: 0.8; }
+
+  .progress-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 2rem;
+  }
+
+  .progress-step {
+    height: 3px;
+    flex: 1;
+    background: var(--border-strong);
+    border-radius: 2px;
+    transition: background 0.2s;
+  }
+
+  .progress-step.done { background: var(--text); }
+  .progress-step.current { background: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-mark">♪</div>
+      <span class="setup-logo-name">Project: Music Heals Us</span>
+    </div>
+    <h1>Daily ritual</h1>
+    <p>Your morning command center. Enter your Anthropic API key to enable live briefings for each domain. The key is stored locally in your browser and never sent anywhere except directly to Anthropic.</p>
+    <div class="field-label">Anthropic API key</div>
+    <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-api03-…" />
+    <p class="api-hint">Get your key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Each morning session costs &lt; $0.02.</p>
+    <button class="btn-primary" onclick="saveAndStart()">Start today's ritual →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">♪</div>
+        <span class="logo-name">PMHU Ritual</span>
+      </div>
+
+      <div class="nav-label">Phases</div>
+      <div class="phase-nav">
+        <button class="phase-btn active" id="nav-ground" onclick="showPhase('ground')">
+          <div class="phase-num-sm" style="background:var(--accent-bg);color:var(--accent-text);">1</div>
+          Ground
+        </button>
+        <button class="phase-btn" id="nav-scan" onclick="showPhase('scan')">
+          <div class="phase-num-sm" style="background:var(--purple-bg);color:var(--purple);">2</div>
+          Scan
+        </button>
+        <button class="phase-btn" id="nav-commit" onclick="showPhase('commit')">
+          <div class="phase-num-sm" style="background:var(--green-bg);color:var(--green);">3</div>
+          Commit
+        </button>
+        <button class="phase-btn" id="nav-inbox" onclick="showPhase('inbox')">
+          <div class="phase-num-sm" style="background:var(--gray-bg);color:var(--gray);">4</div>
+          Inbox
+        </button>
+      </div>
+
+      <div class="nav-label" style="margin-top:1.5rem;">Domains</div>
+      <button class="nav-item" onclick="showPhase('scan'); setTimeout(()=>selectDomain('campaign'),100)">
+        <span>📢</span> Campaign
+        <span class="nav-dot dot-amber"></span>
+      </button>
+      <button class="nav-item" onclick="showPhase('scan'); setTimeout(()=>selectDomain('donors'),100)">
+        <span>👥</span> Donor pipeline
+        <span class="nav-dot dot-green"></span>
+      </button>
+      <button class="nav-item" onclick="showPhase('scan'); setTimeout(()=>selectDomain('grants'),100)">
+        <span>🏛</span> Grants
+        <span class="nav-dot dot-red"></span>
+      </button>
+      <button class="nav-item" onclick="showPhase('scan'); setTimeout(()=>selectDomain('comms'),100)">
+        <span>✉️</span> Comms
+        <span class="nav-dot dot-amber"></span>
+      </button>
+      <button class="nav-item" onclick="showPhase('scan'); setTimeout(()=>selectDomain('ops'),100)">
+        <span>⚙️</span> Ops & systems
+        <span class="nav-dot dot-amber"></span>
+      </button>
+      <button class="nav-item" onclick="showPhase('scan'); setTimeout(()=>selectDomain('role'),100)">
+        <span>🧭</span> Role & self
+        <span class="nav-dot dot-gray"></span>
+      </button>
+
+      <div class="nav-label" style="margin-top:1.5rem;">History</div>
+      <button class="nav-item" onclick="showPhase('log')">
+        <span>📋</span> Past entries
+      </button>
+
+      <div class="sidebar-footer">
+        <button class="btn-ghost" onclick="resetKey()">⚙ Change API key</button>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="main-content">
+      <div class="page-header">
+        <span class="page-title">Good morning, David.</span>
+        <span class="page-date" id="app-date"></span>
+      </div>
+
+      <div class="progress-bar" id="progress-bar">
+        <div class="progress-step current" id="prog-ground"></div>
+        <div class="progress-step" id="prog-scan"></div>
+        <div class="progress-step" id="prog-commit"></div>
+        <div class="progress-step" id="prog-inbox"></div>
+      </div>
+
+      <!-- GROUND -->
+      <div class="phase-block visible" id="phase-ground">
+        <div class="phase-header">
+          <span class="phase-pill" style="background:var(--accent-bg);color:var(--accent-text);">Phase 1 · Ground</span>
+          <span class="phase-time-tag">3 min — before you open anything</span>
+        </div>
+        <div class="ground-questions">
+          <div class="ground-q">
+            <div class="ground-q-label">Yesterday ended on</div>
+            <div class="ground-q-prompt">What did you actually finish? Not plan — finish.</div>
+            <textarea class="ground-input" id="g-finished" placeholder="I completed…" rows="2"></textarea>
+          </div>
+          <div class="ground-q">
+            <div class="ground-q-label">Carried forward</div>
+            <div class="ground-q-prompt">What was left open and is now today's debt?</div>
+            <textarea class="ground-input" id="g-carried" placeholder="Still open from yesterday…" rows="2"></textarea>
+          </div>
+          <div class="ground-q">
+            <div class="ground-q-label">Biggest lever today</div>
+            <div class="ground-q-prompt">If you only did one thing, what moves the org most?</div>
+            <textarea class="ground-input" id="g-lever" placeholder="The highest-leverage action today is…" rows="2"></textarea>
+          </div>
+        </div>
+        <button class="next-btn" onclick="showPhase('scan')">Scan domains →</button>
+      </div>
+
+      <!-- SCAN -->
+      <div class="phase-block" id="phase-scan">
+        <div class="phase-header">
+          <span class="phase-pill" style="background:var(--purple-bg);color:var(--purple);">Phase 2 · Scan</span>
+          <span class="phase-time-tag">10 min — 60 sec per domain</span>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-card" id="dc-campaign" onclick="selectDomain('campaign')">
+            <div class="dc-top"><span class="dc-icon">📢</span><span class="nav-dot dot-amber"></span></div>
+            <div class="dc-label">Campaign</div>
+            <div class="dc-sub">Music, Within Reach · Jun 30</div>
+          </div>
+          <div class="domain-card" id="dc-donors" onclick="selectDomain('donors')">
+            <div class="dc-top"><span class="dc-icon">👥</span><span class="nav-dot dot-green"></span></div>
+            <div class="dc-label">Donor pipeline</div>
+            <div class="dc-sub">Major + mid-level cultivation</div>
+          </div>
+          <div class="domain-card" id="dc-grants" onclick="selectDomain('grants')">
+            <div class="dc-top"><span class="dc-icon">🏛</span><span class="nav-dot dot-red"></span></div>
+            <div class="dc-label">Grants</div>
+            <div class="dc-sub">FY27 gap · Tow · SFCM</div>
+          </div>
+          <div class="domain-card" id="dc-comms" onclick="selectDomain('comms')">
+            <div class="dc-top"><span class="dc-icon">✉️</span><span class="nav-dot dot-amber"></span></div>
+            <div class="dc-label">Comms</div>
+            <div class="dc-sub">Email · social · content</div>
+          </div>
+          <div class="domain-card" id="dc-ops" onclick="selectDomain('ops')">
+            <div class="dc-top"><span class="dc-icon">⚙️</span><span class="nav-dot dot-amber"></span></div>
+            <div class="dc-label">Ops & systems</div>
+            <div class="dc-sub">Bloomerang · Mailchimp · data</div>
+          </div>
+          <div class="domain-card" id="dc-role" onclick="selectDomain('role')">
+            <div class="dc-top"><span class="dc-icon">🧭</span><span class="nav-dot dot-gray"></span></div>
+            <div class="dc-label">Role & self</div>
+            <div class="dc-sub">Comp · capacity · horizon</div>
+          </div>
+        </div>
+
+        <div class="domain-detail" id="domain-detail" style="display:none;">
+          <div class="dd-header">
+            <span class="dd-title" id="dd-title"></span>
+            <button class="dd-close" onclick="closeDomain()">✕ close</button>
+          </div>
+          <div class="dd-questions" id="dd-qs"></div>
+          <div class="dd-actions">
+            <button class="btn-ask" id="btn-briefing" onclick="requestBriefing()">Get live briefing from Claude →</button>
+            <button class="btn-save" onclick="closeDomain()">Done with this domain</button>
+          </div>
+        </div>
+
+        <div class="ai-panel" id="ai-panel">
+          <div class="ai-panel-header">
+            <span class="ai-badge">Claude</span>
+            <span class="ai-context-label" id="ai-context-label">Briefing</span>
+          </div>
+          <div class="ai-panel-body" id="ai-panel-body"></div>
+        </div>
+
+        <button class="next-btn" onclick="showPhase('commit')">Commit to one thing →</button>
+      </div>
+
+      <!-- COMMIT -->
+      <div class="phase-block" id="phase-commit">
+        <div class="phase-header">
+          <span class="phase-pill" style="background:var(--green-bg);color:var(--green);">Phase 3 · Commit</span>
+          <span class="phase-time-tag">2 min — name the one thing</span>
+        </div>
+        <div class="one-thing-card">
+          <div class="one-thing-label">Today's single most important action</div>
+          <input class="one-thing-input" type="text" id="one-thing-val" placeholder="If this is all I do today, it was a good day…" />
+        </div>
+        <div class="commit-rule">
+          <strong>Rule:</strong> This is never email. It is never a meeting. It is always something that moves revenue, moves a relationship, or reduces structural risk. Write it, then open Slack.
+        </div>
+        <div style="display:flex; gap:8px; margin-top:1.5rem;">
+          <button class="next-btn" onclick="saveEntry(); showPhase('inbox')">Save & open inbox →</button>
+        </div>
+      </div>
+
+      <!-- INBOX -->
+      <div class="phase-block" id="phase-inbox">
+        <div class="phase-header">
+          <span class="phase-pill" style="background:var(--gray-bg);color:var(--gray);">Phase 4 · Inbox</span>
+          <span class="phase-time-tag">5 min — now you're allowed in</span>
+        </div>
+        <div class="inbox-check">
+          <div class="inbox-row" onclick="toggleInbox(this)">
+            <div class="inbox-check-box">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <div class="inbox-label">💬 Slack</div>
+              <div class="inbox-q">Anything from Molly, Bridget, or Jess that blocks today's one thing?</div>
+            </div>
+          </div>
+          <div class="inbox-row" onclick="toggleInbox(this)">
+            <div class="inbox-check-box">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <div class="inbox-label">✉️ Email</div>
+              <div class="inbox-q">Anything from a donor, funder, or board member that requires same-day response?</div>
+            </div>
+          </div>
+          <div class="inbox-row" onclick="toggleInbox(this)">
+            <div class="inbox-check-box">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <div class="inbox-label">📊 Bloomerang</div>
+              <div class="inbox-q">Any gifts logged since yesterday? Tag fundraiser + campaign immediately.</div>
+            </div>
+          </div>
+          <div class="inbox-row" onclick="toggleInbox(this)">
+            <div class="inbox-check-box">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <div class="inbox-label">📅 Asana</div>
+              <div class="inbox-q">Any overdue tasks? Anything done but not marked complete — creating false debt?</div>
+            </div>
+          </div>
+        </div>
+        <button class="next-btn" style="background:var(--green);margin-top:1.25rem;" onclick="finishRitual()">Ritual complete — start the day ✓</button>
+      </div>
+
+      <!-- LOG -->
+      <div class="phase-block" id="phase-log">
+        <div class="phase-header">
+          <span class="phase-pill" style="background:var(--gray-bg);color:var(--gray);">History</span>
+        </div>
+        <div class="section-hed">Past one things</div>
+        <div id="log-container"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DOMAINS = {
+  campaign: {
+    label: 'Campaign — Music, Within Reach',
+    qs: [
+      { q: 'Match pool status', h: 'Marc Wong ($5K) + Jay Dweck ($7.5K) = $12.5K confirmed. What\'s been activated? What\'s still dormant?' },
+      { q: 'Email sequence', h: 'Which email went out last? What\'s next in the 8-email sequence and when does it drop?' },
+      { q: 'Board activation', h: 'Which of the 12 board members have forwarded or engaged? Who has gone silent?' },
+      { q: 'Gifts logged', h: 'Any new gifts in Bloomerang since yesterday? Are they tagged to the campaign?' },
+      { q: 'Pacing to $50K', h: 'Where does total stand vs. June 30 close? What\'s the daily run rate needed?' }
+    ],
+    prompt: `You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU), a nonprofit delivering live music in healthcare, justice, and international education settings.
+
+CAMPAIGN CONTEXT:
+- Active campaign: "Music, Within Reach" (May 18–June 30, 2026), goal $50,000+
+- Confirmed $12,500 challenge match: Marc Wong ($5K) + Jay Dweck ($7.5K, his first-ever gift)
+- 8-email sequence built from participant interview transcripts
+- 12 board members have personalized UTM-tracked donation links
+- Bloomerang is the CRM (migrated from Kindful May 8); UTMs do NOT auto-tag fundraiser field — manual tagging required
+
+Give David a focused 3-4 point briefing on what to check and act on in the Campaign domain this morning. Be specific, direct, and tactical. Flag the highest-risk item first. No pleasantries.`
+  },
+  donors: {
+    label: 'Donor pipeline — major & mid-level',
+    qs: [
+      { q: 'Marks Family Fund', h: '~60% of revenue. Any signal on renewal? Is Bridget or Molly holding a touchpoint?' },
+      { q: 'Jay Dweck / Alphadyne', h: 'First-ever gift. Next move to warm the Alphadyne path via Raquel Thompson (raquel.thompson@adyne.com)?' },
+      { q: 'Mid-level tier ($500–$4,999)', h: 'Highest-leverage uncultivated tier. Any dormant donors overdue for a touch?' },
+      { q: 'Lapsed reactivation', h: 'Retention ~40%. Who in the lapsed pool is warm enough for outreach this week?' },
+      { q: 'Next ask in queue', h: 'Who is Molly or Bridget scheduled to solicit next? Do they have what they need from you?' }
+    ],
+    prompt: `You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU).
+
+DONOR PIPELINE CONTEXT:
+- Marks Family Fund: ~60% of annual revenue, uncertain renewal — central structural risk
+- Jay Dweck: first-ever gift ($7.5K match pledge), connected to Alphadyne Foundation via Raquel Thompson
+- Mid-level tier ($500–$4,999): underdeveloped, highest-leverage cultivation opportunity
+- Donor retention: ~40%, below benchmark; file has contracted year-over-year
+- David manages donors up to $2,500; Molly owns relationships above $2,500 outside top 5; Bridget and Molly jointly own top solicitations
+
+Give David a focused 3-4 point briefing on donor pipeline priorities this morning. Flag concentration risk, next relationship moves, and any reactivation opportunities. Be specific and direct.`
+  },
+  grants: {
+    label: 'Grants & institutional funding',
+    qs: [
+      { q: 'Tow Foundation', h: 'June review window open. Any response? What\'s the follow-up cadence?' },
+      { q: 'FY27 gap', h: '~$125K unidentified. Which prospects (NEA, CEC ArtsLink) need action this week?' },
+      { q: 'Juilliard → SFCM transition', h: 'Juilliard partnership has ended. SFCM is now the partner. Which live proposals still reference Juilliard? Schapiro Fund, NAMM flagged.' },
+      { q: 'Next deadline', h: 'What is the next grant deadline? Is a draft in progress?' },
+      { q: 'Longer-term prospects', h: 'Rockefeller Brothers Fund, Open Society, Carnegie Corporation — where are they in the research pipeline?' }
+    ],
+    prompt: `You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU).
+
+GRANTS CONTEXT:
+- FY27 has a ~$125K unidentified foundation funding gap
+- Tow Foundation: June review window, no response yet
+- CRITICAL: Juilliard partnership has ENDED. San Francisco Conservatory of Music (SFCM) is now the domestic conservatory partner for Music for the Future. Existing proposals (Schapiro Fund, NAMM) heavily feature Juilliard and cannot be reused without significant revision.
+- Near-term prospects: NEA international grants, CEC ArtsLink
+- Longer-term: Rockefeller Brothers Fund, Open Society Foundation, Carnegie Corporation
+- Programs operate in Kenya, Palestine, Iraq (Novel Voices) and healthcare/justice settings (VSI, MFTF)
+- PMHU EIN: 81-4264727
+
+Give David a focused 3-4 point grants briefing. Prioritize by urgency and revenue impact. Flag the Juilliard transition risk prominently.`
+  },
+  comms: {
+    label: 'Communications & content',
+    qs: [
+      { q: 'Social calendar', h: 'What is scheduled to publish today or tomorrow? Is the content ready?' },
+      { q: 'Mailchimp', h: 'Any sends scheduled? Segments clean? Audience audit pending (76 flagged contacts).' },
+      { q: 'Pending content', h: 'Any program story, testimonial, or update that needs to move to draft or publish?' },
+      { q: 'GA4 signal', h: 'Any notable traffic patterns on pmhu.org — campaign page, donate page?' },
+      { q: 'Board comms', h: 'Does anyone on the board need a response, update, or briefing today?' }
+    ],
+    prompt: `You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU).
+
+COMMS CONTEXT:
+- Active campaign "Music, Within Reach" running through June 30 — campaign emails and social posts are in-flight
+- Mailchimp syncs hourly with Bloomerang; audience audit pending (76 flagged contacts including capitalization issues and missing names)
+- GA4 recently installed on pmhu.org via WPCodeBox after a period of absence
+- David owns all communications, content creation, and development infrastructure
+- Programs generate rich participant stories (VSI, MFTF, Novel Voices) that feed the narrative pipeline
+- Social media content calendar exists
+
+Give David a focused 3-4 point comms briefing for today. Surface what needs to move, what could slip, and one story/content opportunity worth flagging.`
+  },
+  ops: {
+    label: 'Operations & systems',
+    qs: [
+      { q: 'Bloomerang data hygiene', h: 'Any untagged transactions? Fundraiser field blank on recent gifts? UTMs don\'t auto-tag — check manually.' },
+      { q: 'Mailchimp sync', h: 'Hourly sync running clean? Any donors not in the right segment?' },
+      { q: 'Benevity', h: 'Any matching gift revenue not reconciled to a donor record?' },
+      { q: 'Asana', h: 'Any overdue tasks? Anything done but not marked complete?' },
+      { q: 'Mailing address', h: 'Kingston NY vs. Guilford CT discrepancy still open. Any submissions at risk?' }
+    ],
+    prompt: `You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU).
+
+OPS & SYSTEMS CONTEXT:
+- Bloomerang CRM (migrated from Kindful May 8, 2026); syncs hourly with Mailchimp
+- Critical: UTM parameters do NOT auto-attribute gifts to board members in Bloomerang — manual Fundraiser field tagging required per transaction
+- Benevity matching gift revenue may not be tracked to individual donor records — data integrity gap
+- Mailing address discrepancy: official address is PO Box 1275, Kingston, NY 12402 but a Guilford CT address appeared on NAMM application — unresolved
+- Make.com (free tier) handles automation; GA4 recently installed
+- Asana loosely adopted; Slack is primary team comms
+
+Give David a focused 3-4 point ops briefing. Flag anything that could corrupt data integrity or create downstream problems. Be specific about what to actually check.`
+  },
+  role: {
+    label: 'Role & professional development',
+    qs: [
+      { q: 'Capacity check', h: 'Operating at strategic altitude or in the weeds? What pulled you down yesterday?' },
+      { q: 'Compensation file', h: 'Any new data points to add to the role audit documentation?' },
+      { q: 'Delegation opportunity', h: 'Anything on your plate today that Jess, Molly, or Bridget should own?' },
+      { q: 'Nevada/Tahoe July', h: 'Fundraising opportunity with Dolphins Quartet — any prep needed now?' },
+      { q: 'Novel Voices hire', h: 'Job description — Arabic fluency weighting, safeguarding language — where is this?' }
+    ],
+    prompt: `You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU).
+
+ROLE CONTEXT:
+- David is the sole development and communications staff member — operating at strategic altitude that exceeds his formal title and compensation
+- He has documented a role audit for a future compensation conversation with leadership
+- Key colleagues: Bridget Budish (ED), Molly Carr (Founder/AD), Jess Boykin (Director of Operations)
+- Open item: Novel Voices Program Manager hire following Margaret's departure — JD needs Arabic fluency weighting and safeguarding language for conflict settings (Iraq, Palestine)
+- Upcoming: Nevada/Tahoe July fundraising opportunity connected to Dolphins Quartet
+- Six functional domains: Development Strategy, Campaign Design & Comms, Grants & Institutional Funding, Content & Storytelling, Operations & Systems Architecture, Role Strategy & Professional Development
+
+Give David a focused 2-3 point role check-in. Surface any capacity risk, delegation opportunity, or horizon item that deserves attention today.`
+  }
+};
+
+let currentDomain = null;
+let currentPhase = 'ground';
+let apiKey = localStorage.getItem('pmhu_api_key') || '';
+
+function init() {
+  if (apiKey) {
+    showApp();
+  }
+  const d = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dateStr = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  document.getElementById('app-date').textContent = dateStr;
+}
+
+function saveAndStart() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key || !key.startsWith('sk-')) {
+    showToast('Enter a valid Anthropic API key (starts with sk-)');
+    return;
+  }
+  localStorage.setItem('pmhu_api_key', key);
+  apiKey = key;
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+}
+
+function resetKey() {
+  localStorage.removeItem('pmhu_api_key');
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
+
+function showPhase(phase) {
+  document.querySelectorAll('.phase-block').forEach(b => b.classList.remove('visible'));
+  document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('phase-' + phase).classList.add('visible');
+  const navEl = document.getElementById('nav-' + phase);
+  if (navEl) navEl.classList.add('active');
+  currentPhase = phase;
+
+  const phases = ['ground','scan','commit','inbox'];
+  phases.forEach((p, i) => {
+    const el = document.getElementById('prog-' + p);
+    if (!el) return;
+    const idx = phases.indexOf(phase);
+    if (i < idx) { el.className = 'progress-step done'; }
+    else if (i === idx) { el.className = 'progress-step current'; }
+    else { el.className = 'progress-step'; }
+  });
+
+  if (phase === 'log') renderLog();
+}
+
+function selectDomain(key) {
+  document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById('dc-' + key);
+  if (card) card.classList.add('selected');
+
+  currentDomain = key;
+  const d = DOMAINS[key];
+  document.getElementById('dd-title').textContent = d.label;
+
+  const qContainer = document.getElementById('dd-qs');
+  qContainer.innerHTML = d.qs.map(item => `
+    <div class="dd-q">
+      <div class="dd-q-label">${item.q}</div>
+      <div class="dd-q-hint">${item.h}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('domain-detail').style.display = 'block';
+  document.getElementById('ai-panel').classList.remove('visible');
+  document.getElementById('ai-panel-body').textContent = '';
+}
+
+function closeDomain() {
+  document.getElementById('domain-detail').style.display = 'none';
+  document.getElementById('ai-panel').classList.remove('visible');
+  document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
+  currentDomain = null;
+}
+
+async function requestBriefing() {
+  if (!currentDomain) return;
+  if (!apiKey) { showToast('API key not set'); return; }
+
+  const btn = document.getElementById('btn-briefing');
+  btn.disabled = true;
+  btn.textContent = 'Pulling briefing…';
+
+  const panel = document.getElementById('ai-panel');
+  const body = document.getElementById('ai-panel-body');
+  const label = document.getElementById('ai-context-label');
+
+  panel.classList.add('visible');
+  label.textContent = DOMAINS[currentDomain].label;
+  body.innerHTML = '<div class="ai-loading"><div class="pulse"></div> Pulling your briefing…</div>';
+
+  const systemPrompt = DOMAINS[currentDomain].prompt;
+  const todayDate = document.getElementById('app-date').textContent;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: `Today is ${todayDate}. Give me my morning briefing for this domain. Be concise, tactical, and direct. Use plain text with short paragraphs — no markdown headers or bullets.`
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      body.textContent = `Error: ${data.error.message}`;
+    } else {
+      const text = data.content?.[0]?.text || 'No response received.';
+      body.textContent = text;
+    }
+  } catch (err) {
+    body.textContent = `Connection error: ${err.message}. Check your API key and try again.`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Get live briefing from Claude →';
+}
+
+function toggleInbox(row) {
+  row.classList.toggle('checked');
+}
+
+function saveEntry() {
+  const oneThing = document.getElementById('one-thing-val').value.trim();
+  if (!oneThing) return;
+
+  const entries = JSON.parse(localStorage.getItem('pmhu_ritual_log') || '[]');
+  entries.unshift({
+    date: new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+    oneThing,
+    finished: document.getElementById('g-finished').value.trim(),
+    carried: document.getElementById('g-carried').value.trim(),
+    lever: document.getElementById('g-lever').value.trim(),
+    ts: Date.now()
+  });
+  localStorage.setItem('pmhu_ritual_log', JSON.stringify(entries.slice(0, 60)));
+  showToast('Entry saved');
+}
+
+function finishRitual() {
+  saveEntry();
+  showToast('Ritual complete. Go move the needle.');
+  setTimeout(() => showPhase('ground'), 1200);
+}
+
+function renderLog() {
+  const entries = JSON.parse(localStorage.getItem('pmhu_ritual_log') || '[]');
+  const container = document.getElementById('log-container');
+  if (!entries.length) {
+    container.innerHTML = '<div class="empty-log">No entries yet. Complete your first ritual to start the log.</div>';
+    return;
+  }
+  container.innerHTML = entries.map(e => `
+    <div class="log-entry">
+      <div class="log-date">${e.date}</div>
+      <div class="log-thing">${e.oneThing}</div>
+      ${e.finished ? `<div class="log-notes"><strong>Finished:</strong> ${e.finished}</div>` : ''}
+      ${e.carried ? `<div class="log-notes"><strong>Carried:</strong> ${e.carried}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>
