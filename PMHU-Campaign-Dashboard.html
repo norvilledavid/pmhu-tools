@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PMHU — Music, Within Reach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F7F6F2;--surface:#fff;--surface-2:#F0EEE9;--border:rgba(0,0,0,0.08);
+  --border-strong:rgba(0,0,0,0.15);--text:#1A1917;--muted:#6B6860;--faint:#A09D96;
+  --accent:#1D5FA8;--accent-bg:#EBF2FC;--accent-text:#0C3D6E;
+  --green:#2E7D52;--green-bg:#E8F5EE;--amber:#8A5C00;--amber-bg:#FDF3DC;
+  --red:#B83232;--red-bg:#FCEAEA;--radius:10px;--radius-sm:6px;
+  --shadow:0 1px 4px rgba(0,0,0,0.07);
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+
+/* LOADING */
+.loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;}
+.loading-mark{width:44px;height:44px;background:var(--text);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;}
+.loading-text{font-size:13px;color:var(--muted);}
+.loading-bar{width:220px;height:3px;background:var(--border-strong);border-radius:2px;overflow:hidden;}
+.loading-fill{height:100%;background:var(--accent);animation:lf 1.6s ease-in-out infinite;}
+@keyframes lf{0%{width:0;margin-left:0}50%{width:55%;margin-left:20%}100%{width:0;margin-left:100%}}
+
+/* LAYOUT */
+.app{display:none;min-height:100vh;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;gap:16px;height:52px;position:sticky;top:0;z-index:50;}
+.topbar-logo{display:flex;align-items:center;gap:8px;}
+.logo-mark{width:24px;height:24px;background:var(--text);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);}
+.topbar-campaign{font-size:13px;color:var(--muted);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.sync-pill{display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;background:var(--surface-2);}
+.sync-dot{width:6px;height:6px;border-radius:50%;}
+.dot-green{background:var(--green);}
+.dot-amber{background:#D4890A;animation:pulse 1s infinite;}
+.dot-red{background:var(--red);}
+.dot-blue{background:var(--accent);animation:pulse 0.8s infinite;}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+.days-pill{font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;}
+.days-urgent{background:var(--red-bg);color:var(--red);}
+.days-warning{background:var(--amber-bg);color:var(--amber);}
+.days-ok{background:var(--green-bg);color:var(--green);}
+.btn-refresh{padding:5px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:none;font-size:12px;color:var(--muted);cursor:pointer;transition:all .1s;}
+.btn-refresh:hover{background:var(--surface-2);color:var(--text);}
+
+/* NAV TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;}
+.tab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .1s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent-text);border-bottom-color:var(--accent);}
+
+/* MAIN */
+.main{padding:2rem;max-width:1200px;margin:0 auto;}
+.section{margin-bottom:2rem;}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:.875rem;}
+
+/* HERO PROGRESS */
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem 2rem;box-shadow:var(--shadow);margin-bottom:1.5rem;}
+.hero-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:12px;}
+.hero-raised{font-size:42px;font-weight:700;letter-spacing:-1.5px;color:var(--text);line-height:1;}
+.hero-goal{font-size:15px;color:var(--muted);margin-top:4px;}
+.hero-pct{font-size:28px;font-weight:600;letter-spacing:-.5px;color:var(--accent);}
+.progress-track{height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;margin-bottom:1rem;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent) 0%,#4A90D9 100%);border-radius:6px;transition:width .6s ease;}
+.progress-match{height:100%;background:linear-gradient(90deg,var(--green) 0%,#52B584 100%);border-radius:6px;transition:width .6s ease;margin-top:-12px;}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.hero-stat{background:var(--surface-2);border-radius:var(--radius-sm);padding:.75rem 1rem;}
+.hs-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);margin-bottom:3px;}
+.hs-value{font-size:18px;font-weight:600;letter-spacing:-.3px;color:var(--text);}
+.hs-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* GRID CARDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);}
+.card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);margin-bottom:4px;}
+.card-value{font-size:24px;font-weight:600;letter-spacing:-.5px;color:var(--text);}
+.card-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.card-accent{border-left:3px solid var(--accent);}
+.card-green{border-left:3px solid var(--green);}
+.card-amber{border-left:3px solid #D4890A;}
+.card-red{border-left:3px solid var(--red);}
+
+/* MATCH POOL */
+.match-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);}
+.match-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.match-title{font-size:13px;font-weight:600;}
+.match-total{font-size:13px;font-weight:600;color:var(--green);}
+.match-donor{margin-bottom:.75rem;}
+.match-donor:last-child{margin-bottom:0;}
+.md-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.md-name{font-size:13px;font-weight:500;}
+.md-amt{font-size:13px;color:var(--muted);}
+.md-bar-track{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;}
+.md-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
+
+/* EMAIL SEQUENCE */
+.email-sequence{display:flex;flex-direction:column;gap:8px;}
+.email-item{display:flex;align-items:center;gap:12px;padding:.875rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);}
+.email-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.enum-sent{background:var(--text);color:#fff;}
+.enum-next{background:var(--accent-bg);color:var(--accent-text);border:1px solid var(--accent);}
+.enum-upcoming{background:var(--surface-2);color:var(--faint);}
+.email-info{flex:1;}
+.email-subject{font-size:13px;font-weight:500;color:var(--text);}
+.email-date{font-size:11px;color:var(--muted);margin-top:1px;}
+.email-stats{display:flex;gap:12px;margin-left:auto;}
+.estat{text-align:right;}
+.estat-val{font-size:13px;font-weight:600;color:var(--text);}
+.estat-label{font-size:10px;color:var(--faint);}
+.email-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.badge-sent{background:var(--green-bg);color:var(--green);}
+.badge-next{background:var(--accent-bg);color:var(--accent-text);}
+.badge-upcoming{background:var(--surface-2);color:var(--faint);}
+
+/* DONOR TABLE */
+.donor-table{width:100%;border-collapse:collapse;}
+.donor-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.donor-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;}
+.donor-table tr:last-child td{border-bottom:none;}
+.donor-table tr:hover td{background:var(--surface-2);}
+.dtype-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;}
+.dtype-new{background:var(--accent-bg);color:var(--accent-text);}
+.dtype-retained{background:var(--green-bg);color:var(--green);}
+.dtype-reactivated{background:var(--amber-bg);color:var(--amber);}
+
+/* PIPELINE */
+.pipeline-flags{display:flex;flex-direction:column;gap:8px;}
+.flag-item{display:flex;align-items:center;gap:10px;padding:.875rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);}
+.flag-icon{font-size:16px;flex-shrink:0;}
+.flag-name{font-size:13px;font-weight:500;flex:1;}
+.flag-detail{font-size:12px;color:var(--muted);}
+.flag-stage{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.fstage-tocall{background:var(--red-bg);color:var(--red);}
+.fstage-connected{background:var(--accent-bg);color:var(--accent-text);}
+.fstage-pledged{background:var(--amber-bg);color:var(--amber);}
+.fstage-closed{background:var(--green-bg);color:var(--green);}
+
+/* TABS CONTENT */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* BRIEF PANEL */
+.brief-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.5rem;}
+.brief-header{display:flex;align-items:center;gap:8px;padding:.875rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface-2);}
+.brief-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 8px;background:var(--text);color:#fff;border-radius:4px;}
+.brief-body{padding:1.25rem;font-size:13px;color:var(--text);line-height:1.75;white-space:pre-wrap;min-height:80px;}
+.brief-loading{display:flex;align-items:center;gap:8px;color:var(--muted);}
+.brief-pulse{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse .9s infinite;}
+.btn-brief{padding:7px 14px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;transition:opacity .1s;margin-left:auto;}
+.btn-brief:hover{opacity:.8;}
+.btn-brief:disabled{opacity:.4;cursor:not-allowed;}
+
+.error-bar{background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:13px;color:var(--red);margin-bottom:1rem;display:none;}
+.error-bar.show{display:block;}
+.empty-state{padding:2rem;text-align:center;color:var(--faint);font-size:13px;}
+.last-updated{font-size:11px;color:var(--faint);}
+
+/* TIER BARS */
+.tier-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.tier-label{font-size:12px;color:var(--muted);min-width:110px;}
+.tier-track{flex:1;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
+.tier-fill{height:100%;border-radius:4px;transition:width .4s;}
+.tier-val{font-size:12px;font-weight:600;color:var(--text);min-width:60px;text-align:right;}
+
+@media(max-width:900px){
+  .hero-stats{grid-template-columns:repeat(2,1fr);}
+  .grid-3,.grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-2{grid-template-columns:1fr;}
+  .main{padding:1rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="loading-mark">♪</div>
+  <div class="loading-text" id="loading-msg">Loading campaign data…</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-mark">♪</div>
+      <span class="topbar-title">PMHU</span>
+    </div>
+    <span class="topbar-campaign">Music, Within Reach — Campaign Dashboard</span>
+    <div class="topbar-right">
+      <span class="sync-pill" id="sync-pill">
+        <span class="sync-dot dot-blue" id="sync-dot"></span>
+        <span id="sync-label">Loading</span>
+      </span>
+      <span class="days-pill" id="days-pill"></span>
+      <span class="last-updated" id="last-updated"></span>
+      <button class="btn-refresh" onclick="loadAll()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab" onclick="switchTab('donors',this)">Donors</button>
+    <button class="tab" onclick="switchTab('email',this)">Email</button>
+    <button class="tab" onclick="switchTab('pipeline',this)">Pipeline</button>
+    <button class="tab" onclick="switchTab('brief',this)">AI Brief</button>
+  </div>
+
+  <div class="main">
+    <div class="error-bar" id="error-bar"></div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-content active" id="tab-overview">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-raised" id="hero-raised">$0</div>
+            <div class="hero-goal">of <strong>$75,000</strong> goal</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="hero-pct" id="hero-pct">0%</div>
+            <div style="font-size:12px;color:var(--muted);">of goal reached</div>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:1rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);">
+            <div style="width:10px;height:10px;border-radius:2px;background:linear-gradient(90deg,var(--accent),#4A90D9);flex-shrink:0;"></div>
+            Individual gifts
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);">
+            <div style="width:10px;height:10px;border-radius:2px;background:linear-gradient(90deg,var(--green),#52B584);flex-shrink:0;"></div>
+            Match pool ($30,000 available)
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hs-label">Gap to goal</div>
+            <div class="hs-value" id="hs-gap">$75,000</div>
+            <div class="hs-sub">remaining to raise</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-label">Daily run rate needed</div>
+            <div class="hs-value" id="hs-runrate">—</div>
+            <div class="hs-sub" id="hs-runrate-sub">to close by Jun 30</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-label">Projected close</div>
+            <div class="hs-value" id="hs-projected">—</div>
+            <div class="hs-sub">at current run rate</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-label">Match activated</div>
+            <div class="hs-value" id="hs-match">$0</div>
+            <div class="hs-sub">of $30,000 pool</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATCH POOL -->
+      <div class="section">
+        <div class="section-label">Match pool — $30,000 total</div>
+        <div class="match-card">
+          <div class="match-header">
+            <span class="match-title">Challenge match breakdown</span>
+            <span class="match-total" id="match-remaining">$30,000 remaining</span>
+          </div>
+          <div class="match-donor">
+            <div class="md-row">
+              <span class="md-name">Jay Dweck</span>
+              <span class="md-amt">$7,500 pledge</span>
+            </div>
+            <div class="md-bar-track">
+              <div class="md-bar-fill" id="match-jay" style="width:0%;background:var(--green);"></div>
+            </div>
+          </div>
+          <div class="match-donor" style="margin-top:.75rem;">
+            <div class="md-row">
+              <span class="md-name">Marc Wong</span>
+              <span class="md-amt">$5,000 pledge</span>
+            </div>
+            <div class="md-bar-track">
+              <div class="md-bar-fill" id="match-marc" style="width:0%;background:var(--accent);"></div>
+            </div>
+          </div>
+          <div style="margin-top:.75rem;font-size:11px;color:var(--faint);">Match bars reflect proportional activation based on gifts of $500+ (mid-level and above)</div>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <div class="section">
+        <div class="section-label">Campaign KPIs</div>
+        <div class="grid-4">
+          <div class="card card-accent">
+            <div class="card-label">Total donors</div>
+            <div class="card-value" id="kpi-donors">—</div>
+            <div class="card-sub">unique gifts this campaign</div>
+          </div>
+          <div class="card card-green">
+            <div class="card-label">Avg gift</div>
+            <div class="card-value" id="kpi-avg">—</div>
+            <div class="card-sub">across all donors</div>
+          </div>
+          <div class="card card-amber">
+            <div class="card-label">Largest gift</div>
+            <div class="card-value" id="kpi-largest">—</div>
+            <div class="card-sub">single transaction</div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--faint);">
+            <div class="card-label">Emails sent</div>
+            <div class="card-value" id="kpi-emails">0 of 7</div>
+            <div class="card-sub">campaign sequence</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER BREAKDOWN -->
+      <div class="section">
+        <div class="section-label">Giving by tier</div>
+        <div class="card">
+          <div id="tier-bars"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DONORS TAB -->
+    <div class="tab-content" id="tab-donors">
+      <div class="section">
+        <div class="section-label">Donor retention breakdown</div>
+        <div class="grid-3" style="margin-bottom:1.5rem;">
+          <div class="card card-accent">
+            <div class="card-label">New donors</div>
+            <div class="card-value" id="don-new">—</div>
+            <div class="card-sub">first gift ever to PMHU</div>
+          </div>
+          <div class="card card-green">
+            <div class="card-label">Retained donors</div>
+            <div class="card-value" id="don-retained">—</div>
+            <div class="card-sub">gave last year, gave again</div>
+          </div>
+          <div class="card card-amber">
+            <div class="card-label">Reactivated donors</div>
+            <div class="card-value" id="don-reactivated">—</div>
+            <div class="card-sub">lapsed, now back</div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Gift log</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="donor-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Donor</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Fund</th>
+              </tr>
+            </thead>
+            <tbody id="gift-tbody">
+              <tr><td colspan="5" class="empty-state">No gifts logged yet — Zapier will populate this as gifts come in</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL TAB -->
+    <div class="tab-content" id="tab-email">
+      <div class="section">
+        <div class="section-label">Email performance</div>
+        <div class="grid-4" style="margin-bottom:1.5rem;">
+          <div class="card card-accent">
+            <div class="card-label">Avg open rate</div>
+            <div class="card-value" id="em-open">—</div>
+            <div class="card-sub">across sent emails</div>
+          </div>
+          <div class="card card-green">
+            <div class="card-label">Avg click rate</div>
+            <div class="card-value" id="em-click">—</div>
+            <div class="card-sub">across sent emails</div>
+          </div>
+          <div class="card card-amber">
+            <div class="card-label">Unsubscribes</div>
+            <div class="card-value" id="em-unsubs">—</div>
+            <div class="card-sub">this campaign</div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--faint);">
+            <div class="card-label">Emails deployed</div>
+            <div class="card-value" id="em-deployed">—</div>
+            <div class="card-sub">of 7 in sequence</div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Campaign email sequence</div>
+        <div class="email-sequence" id="email-sequence"></div>
+      </div>
+    </div>
+
+    <!-- PIPELINE TAB -->
+    <div class="tab-content" id="tab-pipeline">
+      <div class="section">
+        <div class="section-label">Pipeline summary</div>
+        <div class="grid-4" style="margin-bottom:1.5rem;">
+          <div class="card card-red">
+            <div class="card-label">To call</div>
+            <div class="card-value" id="pip-tocall">—</div>
+            <div class="card-sub">not yet contacted</div>
+          </div>
+          <div class="card card-accent">
+            <div class="card-label">Connected</div>
+            <div class="card-value" id="pip-connected">—</div>
+            <div class="card-sub">in conversation</div>
+          </div>
+          <div class="card card-amber">
+            <div class="card-label">Pledged</div>
+            <div class="card-value" id="pip-pledged">—</div>
+            <div class="card-sub">commitment made</div>
+          </div>
+          <div class="card card-green">
+            <div class="card-label">Closed</div>
+            <div class="card-value" id="pip-closed">—</div>
+            <div class="card-sub">gift received</div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">⚑ Flagged — action required</div>
+        <div class="pipeline-flags" id="pipeline-flags">
+          <div class="empty-state">Loading pipeline…</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Full call list</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="donor-table">
+            <thead>
+              <tr><th>Name</th><th>Tier</th><th>Ask</th><th>Stage</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="pipeline-tbody">
+              <tr><td colspan="5" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI BRIEF TAB -->
+    <div class="tab-content" id="tab-brief">
+      <div class="brief-panel">
+        <div class="brief-header">
+          <span class="brief-badge">Claude</span>
+          <span style="font-size:12px;color:var(--muted);">Daily campaign brief — powered by live data</span>
+          <button class="btn-brief" id="brief-btn" onclick="generateBrief()">Generate today's brief</button>
+        </div>
+        <div class="brief-body" id="brief-body">
+          <span style="color:var(--faint);">Click "Generate today's brief" for a plain-language campaign status, risk flags, and recommended actions for today.</span>
+        </div>
+      </div>
+      <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:.875rem 1rem;font-size:12px;color:var(--muted);line-height:1.6;">
+        <strong style="color:var(--text);">How this works:</strong> The brief reads your live campaign data — total raised, run rate, email performance, pipeline status — and generates a tactical 3–5 point briefing. Requires your Anthropic API key entered below.
+        <div style="margin-top:.75rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input id="api-key-input" type="password" placeholder="sk-ant-api03-…" style="padding:6px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:12px;font-family:monospace;background:var(--surface);color:var(--text);outline:none;width:300px;" />
+          <button onclick="saveApiKey()" style="padding:6px 12px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;">Save key</button>
+          <span id="key-saved" style="font-size:11px;color:var(--green);"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const GIFTS_API   = 'https://script.google.com/macros/s/AKfycbwxxWrH4FpWPA-EXVkQcHV-pVy3LPWVSpMjqeKkch6kpualUw-mbAaMk7ueGUjZLDRC/exec';
+const SENDS_API   = 'https://script.google.com/macros/s/AKfycbzC_DVpHSqshSIMnuOLeU2cKfqueEC5JkHK-0AB18-xJjX9x51ibSg3euqHqwKnR90_/exec';
+const PIPELINE_API= 'https://script.google.com/macros/s/AKfycbw5BUyL9ynSFAF3UjhK0qJH_UhhvQgp0KuY4fy5cLYGuQvzb7E58vozCaSbSsISVbwheQ/exec';
+const GOAL = 75000;
+const MATCH_TOTAL = 30000;
+const CAMPAIGN_START = new Date('2026-05-18');
+const CAMPAIGN_END   = new Date('2026-06-30');
+
+const EMAIL_SEQUENCE = [
+  {num:1, subject:'Will you help music reach further?',                         date:'May 19'},
+  {num:2, subject:'Your gift is doubled through June 30. Here\'s who it reaches.',date:'May 26'},
+  {num:3, subject:'The match just doubled to $30,000 — now through June 30.',   date:'Jun 2'},
+  {num:4, subject:'Why I support this work',                                    date:'TBD'},
+  {num:5, subject:'Two weeks left',                                             date:'TBD'},
+  {num:6, subject:'Final week of Music, Within Reach',                         date:'TBD'},
+  {num:7, subject:'Last day',                                                   date:'TBD'},
+];
+
+let giftData={gifts:[],summary:{}};
+let sendData={sends:[],summary:{}};
+let pipelineData={donors:[]};
+let apiKey = localStorage.getItem('pmhu_brief_key')||'';
+
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('sync-dot');
+  const label=document.getElementById('sync-label');
+  dot.className='sync-dot dot-'+state;
+  label.textContent=msg;
+}
+
+function setDaysLeft(){
+  const today=new Date();
+  const diff=Math.max(0,Math.ceil((CAMPAIGN_END-today)/86400000));
+  const pill=document.getElementById('days-pill');
+  pill.textContent=diff+' days left';
+  pill.className='days-pill '+(diff<=7?'days-urgent':diff<=14?'days-warning':'days-ok');
+  return diff;
+}
+
+function fmt(n){
+  if(n===undefined||n===null||n==='')return'—';
+  return '$'+Math.round(parseFloat(n)||0).toLocaleString();
+}
+function fmtPct(n){
+  if(n===undefined||n===null||n==='')return'—';
+  return (parseFloat(n)||0).toFixed(1)+'%';
+}
+
+async function loadAll(){
+  setSyncStatus('blue','Loading…');
+  document.getElementById('last-updated').textContent='';
+  try{
+    document.getElementById('loading-msg').textContent='Loading gift data…';
+    const [gRes,sRes,pRes]=await Promise.all([
+      fetch(GIFTS_API+'?action=read').then(r=>r.json()),
+      fetch(SENDS_API+'?action=read').then(r=>r.json()),
+      fetch(PIPELINE_API+'?action=read').then(r=>r.json()),
+    ]);
+    if(gRes.error) throw new Error('Gifts: '+gRes.error);
+    if(sRes.error) throw new Error('Sends: '+sRes.error);
+    if(pRes.error) throw new Error('Pipeline: '+pRes.error);
+    giftData=gRes;
+    sendData=sRes;
+    pipelineData=pRes;
+    renderAll();
+    setSyncStatus('green','Synced');
+    const now=new Date();
+    document.getElementById('last-updated').textContent=
+      'Updated '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  }catch(err){
+    setSyncStatus('red','Sync failed');
+    showError('Could not load data: '+err.message);
+  }
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+
+function renderAll(){
+  renderOverview();
+  renderDonors();
+  renderEmail();
+  renderPipeline();
+}
+
+function renderOverview(){
+  const s=giftData.summary||{};
+  const total=parseFloat(s.total_raised)||0;
+  const pct=Math.min(100,Math.round(total/GOAL*100));
+  const days=setDaysLeft();
+  const gap=Math.max(0,GOAL-total);
+  const runRate=days>0?Math.ceil(gap/days):0;
+  const campaignDays=Math.ceil((new Date()-CAMPAIGN_START)/86400000);
+  const dailyActual=campaignDays>0?total/campaignDays:0;
+  const projected=Math.round(dailyActual*Math.ceil((CAMPAIGN_END-CAMPAIGN_START)/86400000));
+
+  document.getElementById('hero-raised').textContent=fmt(total);
+  document.getElementById('hero-pct').textContent=pct+'%';
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('hs-gap').textContent=fmt(gap);
+  document.getElementById('hs-runrate').textContent=fmt(runRate)+'/day';
+  document.getElementById('hs-projected').textContent=fmt(projected);
+
+  const matchActivated=parseFloat(s.match_activated)||0;
+  const matchPct=Math.min(100,Math.round(matchActivated/MATCH_TOTAL*100));
+  document.getElementById('hs-match').textContent=fmt(Math.min(matchActivated,MATCH_TOTAL));
+  document.getElementById('match-remaining').textContent=fmt(Math.max(0,MATCH_TOTAL-matchActivated))+' remaining';
+  document.getElementById('match-jay').style.width=Math.min(100,matchPct)+'%';
+  document.getElementById('match-marc').style.width=Math.min(100,Math.max(0,matchPct-50)*2)+'%';
+
+  document.getElementById('kpi-donors').textContent=s.donor_count||0;
+  document.getElementById('kpi-avg').textContent=fmt(s.avg_gift);
+  document.getElementById('kpi-largest').textContent=fmt(s.largest_gift);
+
+  const sentCount=(sendData.sends||[]).length;
+  document.getElementById('kpi-emails').textContent=sentCount+' of 7';
+
+  const tierTotal=Math.max(1,total);
+  const t1=parseFloat(s.tier_under500)||0;
+  const t2=parseFloat(s.tier_500_2499)||0;
+  const t3=parseFloat(s.tier_2500_plus)||0;
+  document.getElementById('tier-bars').innerHTML=[
+    {label:'$2,500+ (Major)',val:t3,color:'var(--accent)'},
+    {label:'$500–$2,499 (Mid)',val:t2,color:'var(--green)'},
+    {label:'Under $500 (Annual)',val:t1,color:'#D4890A'},
+  ].map(t=>`
+    <div class="tier-row">
+      <span class="tier-label">${t.label}</span>
+      <div class="tier-track"><div class="tier-fill" style="width:${Math.round(t.val/tierTotal*100)}%;background:${t.color};"></div></div>
+      <span class="tier-val">${fmt(t.val)}</span>
+    </div>`).join('');
+}
+
+function renderDonors(){
+  const s=giftData.summary||{};
+  document.getElementById('don-new').textContent=s.new_donors||0;
+  document.getElementById('don-retained').textContent=s.retained_donors||0;
+  document.getElementById('don-reactivated').textContent=s.reactivated_donors||0;
+  const gifts=(giftData.gifts||[]).filter(g=>parseFloat(g.amount)>0)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tbody=document.getElementById('gift-tbody');
+  if(!gifts.length){
+    tbody.innerHTML='<tr><td colspan="5" class="empty-state">No gifts logged yet — Zapier will populate this as gifts come in</td></tr>';
+    return;
+  }
+  tbody.innerHTML=gifts.map(g=>{
+    const t=String(g.donor_type||'').toLowerCase();
+    const cls=t.includes('new')?'dtype-new':t.includes('reactivat')?'dtype-reactivated':'dtype-retained';
+    const label=t.includes('new')?'New':t.includes('reactivat')?'Reactivated':'Retained';
+    const d=g.date?new Date(g.date).toLocaleDateString([],{month:'short',day:'numeric'}):'—';
+    return`<tr>
+      <td>${d}</td>
+      <td style="font-weight:500;">${g.donor_name||'—'}</td>
+      <td style="font-weight:600;">${fmt(g.amount)}</td>
+      <td><span class="dtype-badge ${cls}">${label}</span></td>
+      <td style="color:var(--muted);">${g.fund||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderEmail(){
+  const s=sendData.summary||{};
+  const sends=sendData.sends||[];
+  document.getElementById('em-open').textContent=s.avg_open?s.avg_open+'%':'—';
+  document.getElementById('em-click').textContent=s.avg_click?s.avg_click+'%':'—';
+  document.getElementById('em-unsubs').textContent=s.total_unsubs||0;
+  document.getElementById('em-deployed').textContent=sends.length+' of 7';
+
+  const sendMap={};
+  sends.forEach(s=>{ sendMap[parseInt(s.sequence_number||0)]=s; });
+
+  document.getElementById('email-sequence').innerHTML=EMAIL_SEQUENCE.map(e=>{
+    const sent=sendMap[e.num];
+    const isSent=!!sent||e.num<=3;
+    const isNext=!isSent&&e.num===EMAIL_SEQUENCE.find(x=>!sendMap[x.num]&&x.num>3)?.num;
+    const cls=isSent?'enum-sent':isNext?'enum-next':'enum-upcoming';
+    const badgeCls=isSent?'badge-sent':isNext?'badge-next':'badge-upcoming';
+    const badgeLabel=isSent?'Sent':isNext?'Next':'Upcoming';
+    const openRate=sent?.open_rate?fmtPct(sent.open_rate):'—';
+    const clickRate=sent?.click_rate?fmtPct(sent.click_rate):'—';
+    return`<div class="email-item">
+      <div class="email-num ${cls}">${e.num}</div>
+      <div class="email-info">
+        <div class="email-subject">${e.subject}</div>
+        <div class="email-date">${sent?.date?new Date(sent.date).toLocaleDateString([],{month:'short',day:'numeric'}):e.date}</div>
+      </div>
+      ${isSent?`<div class="email-stats">
+        <div class="estat"><div class="estat-val">${openRate}</div><div class="estat-label">Open</div></div>
+        <div class="estat"><div class="estat-val">${clickRate}</div><div class="estat-label">Click</div></div>
+      </div>`:''}
+      <span class="email-badge ${badgeCls}">${badgeLabel}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPipeline(){
+  const donors=pipelineData.donors||[];
+  const stages={tocall:0,attempted:0,connected:0,pledged:0,closed:0};
+  donors.forEach(d=>{
+    const s=String(d.stage||'').toLowerCase().replace(/\s/g,'');
+    if(stages[s]!==undefined) stages[s]++;
+  });
+  document.getElementById('pip-tocall').textContent=(stages.tocall||0)+(stages.attempted||0);
+  document.getElementById('pip-connected').textContent=stages.connected||0;
+  document.getElementById('pip-pledged').textContent=stages.pledged||0;
+  document.getElementById('pip-closed').textContent=stages.closed||0;
+
+  const flags=donors.filter(d=>{
+    const s=String(d.stage||'').toLowerCase();
+    const ask=parseFloat(d.suggested_ask)||0;
+    return (s==='to call'&&ask>=5000)||(s==='pledged')|| d.notes?.includes('⚠️');
+  }).slice(0,8);
+
+  const flagsEl=document.getElementById('pipeline-flags');
+  if(!flags.length){
+    flagsEl.innerHTML='<div class="empty-state">No urgent flags — pipeline looks clean</div>';
+  } else {
+    flagsEl.innerHTML=flags.map(d=>{
+      const s=String(d.stage||'').toLowerCase();
+      const cls=s.includes('call')?'fstage-tocall':s==='connected'?'fstage-connected':s==='pledged'?'fstage-pledged':'fstage-closed';
+      const ask=parseFloat(d.suggested_ask)||0;
+      const reason=ask>=25000?'Major donor — needs Molly/Bridget':
+                   ask>=5000?'High-value uncalled donor':
+                   s==='pledged'?'Pledge not yet closed — follow up':
+                   d.notes?.includes('⚠️')?'Review note':s;
+      return`<div class="flag-item">
+        <span class="flag-icon">${ask>=10000?'🔴':ask>=5000?'🟠':'🟡'}</span>
+        <div style="flex:1;">
+          <div class="flag-name">${d.name||'—'}</div>
+          <div class="flag-detail">${reason}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:600;">${fmt(ask)}</div>
+          <span class="flag-stage ${cls}">${d.stage}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const tbody=document.getElementById('pipeline-tbody');
+  tbody.innerHTML=donors.length?donors.map(d=>{
+    const s=String(d.stage||'');
+    const cls=s==='To Call'||s==='Attempted'?'fstage-tocall':
+               s==='Connected'?'fstage-connected':
+               s==='Pledged'?'fstage-pledged':'fstage-closed';
+    return`<tr>
+      <td style="font-weight:500;">${d.name||'—'}</td>
+      <td><span class="dtype-badge dtype-${(d.tier||'').toLowerCase().replace('-','')}">${d.tier||'—'}</span></td>
+      <td style="font-weight:600;">${fmt(d.suggested_ask)}</td>
+      <td><span class="flag-stage ${cls}">${s}</span></td>
+      <td style="color:var(--muted);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.notes||'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty-state">Loading pipeline…</td></tr>';
+}
+
+async function generateBrief(){
+  const key=apiKey||localStorage.getItem('pmhu_brief_key');
+  if(!key){
+    document.getElementById('brief-body').textContent='Enter your Anthropic API key below first.';
+    return;
+  }
+  const btn=document.getElementById('brief-btn');
+  const body=document.getElementById('brief-body');
+  btn.disabled=true;
+  btn.textContent='Generating…';
+  body.innerHTML='<div class="brief-loading"><div class="brief-pulse"></div> Analyzing live campaign data…</div>';
+
+  const s=giftData.summary||{};
+  const days=Math.max(0,Math.ceil((CAMPAIGN_END-new Date())/86400000));
+  const total=parseFloat(s.total_raised)||0;
+  const gap=Math.max(0,GOAL-total);
+  const runRate=days>0?Math.ceil(gap/days):0;
+  const sends=sendData.sends||[];
+  const ss=sendData.summary||{};
+  const pipeline=pipelineData.donors||[];
+  const tocall=pipeline.filter(d=>d.stage==='To Call'||d.stage==='Attempted').length;
+  const pledged=pipeline.filter(d=>d.stage==='Pledged').length;
+  const closed=pipeline.filter(d=>d.stage==='Closed').length;
+
+  const prompt=`You are briefing David Norville, Director of Development & Communications at Project: Music Heals Us (PMHU), on the current state of the "Music, Within Reach" campaign.
+
+LIVE CAMPAIGN DATA as of today:
+- Goal: $75,000
+- Total raised: $${total.toLocaleString()}
+- Gap remaining: $${gap.toLocaleString()}
+- Days left: ${days} (closes June 30, 2026)
+- Daily run rate needed: $${runRate}/day
+- Total donors: ${s.donor_count||0} (New: ${s.new_donors||0}, Retained: ${s.retained_donors||0}, Reactivated: ${s.reactivated_donors||0})
+- Avg gift: $${s.avg_gift||0} | Largest gift: $${s.largest_gift||0}
+- Match pool: $30,000 total (Jay Dweck $7,500 + Marc Wong $5,000 confirmed + $17,500 additional). Activated: $${Math.min(parseFloat(s.match_activated)||0,30000).toLocaleString()}
+- Email sequence: ${sends.length} of 7 sent | Avg open rate: ${ss.avg_open||0}% | Avg click: ${ss.avg_click||0}%
+- Pipeline: ${tocall} to call, ${pledged} pledged not closed, ${closed} closed
+
+KEY CONTEXT:
+- Brad and Gail Rodney ($40,250 suggested ask) and William Douglass ($25,250 suggested ask) are still uncalled — these need Molly/Bridget
+- Shelly London ($5,250 ask) is lapsed 1yr and uncalled
+- Campaign emails remaining: "Why I support this work", "Two weeks left", "Final week", "Last day"
+
+Give David a plain-language 4-5 point morning brief. Flag the highest-risk item first. Be specific about what to do today. No markdown, no headers, no bullets — just short paragraphs. Direct and tactical.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,
+        messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    body.textContent=data.content?.[0]?.text||'No response received.';
+  }catch(err){
+    body.textContent='Error: '+err.message;
+  }
+  btn.disabled=false;
+  btn.textContent='Regenerate brief';
+}
+
+function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k){return;}
+  localStorage.setItem('pmhu_brief_key',k);
+  apiKey=k;
+  document.getElementById('key-saved').textContent='✓ Saved';
+  setTimeout(()=>document.getElementById('key-saved').textContent='',2000);
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showError(msg){
+  const b=document.getElementById('error-bar');
+  b.textContent=msg;
+  b.classList.add('show');
+}
+
+// pre-fill api key if stored
+window.addEventListener('load',()=>{
+  const k=localStorage.getItem('pmhu_brief_key');
+  if(k) document.getElementById('api-key-input').value=k;
+  loadAll();
+});
+</script>
+</body>
+</html>
